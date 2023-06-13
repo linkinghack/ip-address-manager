@@ -1,0 +1,35 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/configuration-reference
+version: 2.1
+
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/configuration-reference/#jobs
+jobs:
+  build-image:
+    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
+    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+    # docker:
+    #   - image: cimg/base:stable
+    machine:
+      image: ubuntu-2204:2023.02.1
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
+    steps:
+      - checkout
+      - run:
+          name: "Setup Buildx"
+          command: "docker buildx create --use"
+      - run:
+          name: "Docker login"
+          command: "docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD"
+      - run:
+          name: "BuildImage"
+          command: "docker buildx build --platform linux/arm64,linux/amd64 -t linkinghack/ip-address-manager:v1.4.0 . --push"
+
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/configuration-reference/#workflows
+workflows:
+  sample: # This is the name of the workflow, feel free to change it to better match your workflow.
+    # Inside the workflow, you define the jobs you want to run.
+    jobs:
+      - build-image
